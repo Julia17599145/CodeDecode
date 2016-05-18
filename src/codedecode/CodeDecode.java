@@ -40,6 +40,7 @@ public class CodeDecode extends javax.swing.JFrame {
     public CodeDecode() {
         initComponents();
         jLabel3.setVisible(false);
+        System.err.println((int) 'з');
     }
 
     StringBuilder readBuffer = new StringBuilder();
@@ -113,7 +114,7 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         return result.toString();
     }
-
+    //считать изначальные данные
     public StringBuilder readFile() {
         int returnVal = jFileChooser1.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -141,8 +142,8 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         return readBuffer;
     }
-
-    public File writeFile(String fileName, List<Integer> compressed) {
+    //записать раскодированную последовательность
+    public File writeFile(String fileName, String compressed) {
         File writeFile = new File(fileName);
         try {
             //проверяем, что если файл не существует то создаем его
@@ -152,13 +153,13 @@ public class CodeDecode extends javax.swing.JFrame {
 
             //PrintWriter обеспечит возможности записи в файл
             PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile());
-
+            
             try {
+                out.print(compressed);
                 //Записываем текст у файл
-                for (int i : compressed) {
-                    out.print(i);
-                    out.print(" ");
-                }
+                /*for (int i = 0; i < compressed.length(); i++) {
+                    out.print(compressed[i]);
+                }*/
             } finally {
                 //После чего мы должны закрыть файл
                 //Иначе файл не запишется
@@ -169,7 +170,7 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         return writeFile;
     }
-
+    //считать закодированную последовательность
     public List<Integer> readCodeFile(String fileName) {
         List<Integer> list = new ArrayList<Integer>();
         try {
@@ -194,7 +195,7 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         return list;
     }
-
+    //записать закодированную последовательость
     public DataOutputStream writeDecodeFile(String fileName, List<Integer> compressed) {
        DataOutputStream data_out = null;
         try {
@@ -329,6 +330,8 @@ public class CodeDecode extends javax.swing.JFrame {
                 //ArrayList<Integer>decodeList = new ArrayList(Arrays.asList(decodeSequence));
                 String decompressed = decompress(decodeSequence);
                 System.out.println(decompressed);
+                String fileName = readFile.getParent() + "\\decode_" + readFile.getName()+ ".txt";
+                File name = writeFile(fileName, decompressed);
 
                 //System.out.println(list);
 
