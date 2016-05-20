@@ -25,6 +25,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Scanner;
+import java.util.Set;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -45,19 +46,22 @@ public class CodeDecode extends javax.swing.JFrame {
 
     StringBuilder readBuffer = new StringBuilder();
     StringBuilder writeBuffer = new StringBuilder();
-    
+
     File readFile = new File("");
     //File writeFile = new File("");
 
     public static List<Integer> compress(StringBuilder readBuffer) {
         // Build the dictionary.
-        int dictSize = 256;
+        int code = 0;
         Map<String, Integer> dictionary = new HashMap<String, Integer>();
-        for (int i = 0; i < 256; i++) {
-            dictionary.put("" + (char) i, i);
-           // System.out.println((char) i);
+        for (int i = 32; i < 127; i++) {
+            dictionary.put("" + (char) i, code);
+            code++;
         }
-
+        for (int i = 1040; i < 1104; i++) {
+            dictionary.put("" + (char) i, code);
+            code++;
+        }
         String w = "";
         List<Integer> result = new ArrayList<Integer>();
         for (char c : readBuffer.toString().toCharArray()) {
@@ -67,11 +71,11 @@ public class CodeDecode extends javax.swing.JFrame {
             } else {
                 result.add(dictionary.get(w));
                 // Add wc to the dictionary.
-                dictionary.put(wc, dictSize++);
+                dictionary.put(wc, code++);
                 w = "" + c;
             }
         }
-
+        System.err.println(dictionary);
         // Output the code for w.
         if (!w.equals("")) {
             result.add(dictionary.get(w));
@@ -86,35 +90,48 @@ public class CodeDecode extends javax.swing.JFrame {
      */
     public static String decompress(List<Integer> compressed) {
         // Build the dictionary.
-        int dictSize = 256;
+        int code = 0;
 
         Map<Integer, String> dictionary = new HashMap<Integer, String>();
-        for (int i = 0; i < 256; i++) {
-            dictionary.put(i, "" + (char) i);  
+        for (int i = 32; i < 127; i++) {
+            dictionary.put(code, "" + (char) i);
+            code++;
         }
-
-        String w = "" + (char)(int) compressed.remove(0);
+        for (int i = 1040; i < 1104; i++) {
+            dictionary.put(code, "" + (char) i);
+            code++;
+        }
+        //извлечение первого символа
+        int s = compressed.remove(0);
+        String w = "";
+        for (Map.Entry<Integer, String> entry : dictionary.entrySet()) {
+            if(entry.getKey()== s)
+                w = entry.getValue();
+        }
+        
         StringBuffer result = new StringBuffer(w);
         for (int k : compressed) {
             String entry;
             if (dictionary.containsKey(k)) {
                 entry = dictionary.get(k);
-            } else if (k == dictSize) {
+            } else if (k == code) {
                 entry = w + w.charAt(0);
             } else {
                 throw new IllegalArgumentException("Bad compressed k: " + k);
             }
 
             result.append(entry);
-
             // Add w+entry[0] to the dictionary.
-            dictionary.put(dictSize++, w + entry.charAt(0));
+            dictionary.put(code++, w + entry.charAt(0));
 
             w = entry;
         }
+        
         return result.toString();
     }
+
     //считать изначальные данные
+
     public StringBuilder readFile() {
         int returnVal = jFileChooser1.showOpenDialog(this);
         if (returnVal == JFileChooser.APPROVE_OPTION) {
@@ -142,7 +159,9 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         return readBuffer;
     }
+
     //записать раскодированную последовательность
+
     public File writeFile(String fileName, String compressed) {
         File writeFile = new File(fileName);
         try {
@@ -153,13 +172,13 @@ public class CodeDecode extends javax.swing.JFrame {
 
             //PrintWriter обеспечит возможности записи в файл
             PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile());
-            
+
             try {
                 out.print(compressed);
                 //Записываем текст у файл
                 /*for (int i = 0; i < compressed.length(); i++) {
-                    out.print(compressed[i]);
-                }*/
+                 out.print(compressed[i]);
+                 }*/
             } finally {
                 //После чего мы должны закрыть файл
                 //Иначе файл не запишется
@@ -170,7 +189,9 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         return writeFile;
     }
+
     //считать закодированную последовательность
+
     public List<Integer> readCodeFile(String fileName) {
         List<Integer> list = new ArrayList<Integer>();
         try {
@@ -179,7 +200,7 @@ public class CodeDecode extends javax.swing.JFrame {
             DataInputStream data_in = new DataInputStream(file_input);
 
             while (true) {
-                
+
                 try {
                     list.add(data_in.readInt());
                 } catch (EOFException eof) {
@@ -195,15 +216,17 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         return list;
     }
+
     //записать закодированную последовательость
-    public DataOutputStream writeDecodeFile(String fileName, List<Integer> compressed) {
-       DataOutputStream data_out = null;
+
+    public DataOutputStream writeСodeFile(String fileName, List<Integer> compressed) {
+        DataOutputStream data_out = null;
         try {
             // Create an output stream to the file.
             FileOutputStream file_output = new FileOutputStream(fileName);
             // Wrap the FileOutputStream with a DataOutputStream
             data_out = new DataOutputStream(file_output);
-            
+
             // Write the data to the file in an integer/double pair
             for (int i : compressed) {
                 data_out.writeInt(i);
@@ -216,6 +239,16 @@ public class CodeDecode extends javax.swing.JFrame {
         return data_out;
     }
 
+    public String getFileName(String fullName){
+        char[] c = fullName.toCharArray();
+        for(int i = 0; i < fullName.length(); i++){
+            if(c[i] == '.'){
+                fullName = fullName.substring(0, i);
+            }
+        }
+        return fullName;
+    }
+    
     /**
      * This method is called from within the constructor to initialize the form.
      * WARNING: Do NOT modify this code. The content of this method is always
@@ -234,6 +267,11 @@ public class CodeDecode extends javax.swing.JFrame {
         jRadioButton2 = new javax.swing.JRadioButton();
         jButton2 = new javax.swing.JButton();
         jLabel3 = new javax.swing.JLabel();
+        jCheckBox1 = new javax.swing.JCheckBox();
+        jComboBox1 = new javax.swing.JComboBox();
+        jSeparator1 = new javax.swing.JSeparator();
+        jSeparator2 = new javax.swing.JSeparator();
+        jSeparator3 = new javax.swing.JSeparator();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -264,6 +302,12 @@ public class CodeDecode extends javax.swing.JFrame {
 
         jLabel3.setText("jLabel3");
 
+        jCheckBox1.setText("Использовать таблицу кодов");
+
+        jComboBox1.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "банковская", "налоговая", "Item 3", "Item 4" }));
+
+        jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -271,16 +315,29 @@ public class CodeDecode extends javax.swing.JFrame {
             .addGroup(layout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jRadioButton2)
-                    .addComponent(jRadioButton1)
                     .addGroup(layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jButton1))
-                    .addComponent(jLabel2)
-                    .addComponent(jButton2)
-                    .addComponent(jLabel3))
-                .addContainerGap(87, Short.MAX_VALUE))
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addGroup(layout.createSequentialGroup()
+                                .addComponent(jLabel1)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jButton1))
+                            .addComponent(jLabel3))
+                        .addGap(0, 19, Short.MAX_VALUE))
+                    .addComponent(jSeparator3, javax.swing.GroupLayout.Alignment.TRAILING)
+                    .addComponent(jSeparator2)
+                    .addGroup(layout.createSequentialGroup()
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jRadioButton2)
+                            .addComponent(jLabel2)
+                            .addComponent(jButton2)
+                            .addComponent(jRadioButton1))
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jCheckBox1)
+                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -290,16 +347,27 @@ public class CodeDecode extends javax.swing.JFrame {
                     .addComponent(jLabel1)
                     .addComponent(jButton1))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel2)
+                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 2, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jRadioButton1)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jRadioButton2)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jButton2)
+                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jLabel2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jRadioButton1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jRadioButton2)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jButton2))
+                    .addGroup(layout.createSequentialGroup()
+                        .addComponent(jCheckBox1)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                    .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jLabel3)
-                .addContainerGap(85, Short.MAX_VALUE))
+                .addContainerGap(80, Short.MAX_VALUE))
         );
 
         pack();
@@ -319,22 +387,22 @@ public class CodeDecode extends javax.swing.JFrame {
             if (jRadioButton1.isSelected()) {
                 compressed = compress(readBuffer);
                 System.out.println(compressed);
-                String fileName = readFile.getParent() + "\\code_" + readFile.getName()+ ".dat";
-                DataOutputStream outputFile = writeDecodeFile(fileName, compressed);
+                String fileName = readFile.getParent() + "\\code_" + getFileName(readFile.getName()) + ".dat";
+                DataOutputStream outputFile = writeСodeFile(fileName, compressed);
+                
                 jLabel3.setVisible(true);
-                jLabel3.setText("Размер файла до комперессии " + readFile.length() + " байт. После компрессии " + outputFile.size()+ " байт.");
-
+                jLabel3.setText("Размер файла до комперессии " + readFile.length() + " байт. После компрессии " + outputFile.size() + " байт.");
+                JOptionPane.showMessageDialog(jButton1, "Данные кодирования сохранены в файл \\code_" + getFileName(readFile.getName()) + ".dat");
             } else if (jRadioButton2.isSelected()) {
                 List<Integer> decodeSequence = readCodeFile(readFile.getAbsolutePath());
-                //char[] decodeSequence = readBuffer.toString().toCharArray();
-                //ArrayList<Integer>decodeList = new ArrayList(Arrays.asList(decodeSequence));
                 String decompressed = decompress(decodeSequence);
                 System.out.println(decompressed);
-                String fileName = readFile.getParent() + "\\decode_" + readFile.getName()+ ".txt";
-                File name = writeFile(fileName, decompressed);
-
+                String fileName = readFile.getParent() + "\\decode_" + getFileName(readFile.getName()) + ".txt";
+                File outputFile = writeFile(fileName, decompressed);
+                jLabel3.setVisible(true);
+                jLabel3.setText("Размер файла до декомперессии " + readFile.length() + " байт. После декомпрессии " + outputFile.length() + " байт.");
+                JOptionPane.showMessageDialog(jButton1, "Данные декодирования сохранены в файл \\decode_" + getFileName(readFile.getName()) + ".txt");
                 //System.out.println(list);
-
             }
         }
     }//GEN-LAST:event_jButton2ActionPerformed
@@ -384,11 +452,16 @@ public class CodeDecode extends javax.swing.JFrame {
     private javax.swing.ButtonGroup buttonGroup1;
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
+    private javax.swing.JCheckBox jCheckBox1;
+    private javax.swing.JComboBox jComboBox1;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JRadioButton jRadioButton1;
     private javax.swing.JRadioButton jRadioButton2;
+    private javax.swing.JSeparator jSeparator1;
+    private javax.swing.JSeparator jSeparator2;
+    private javax.swing.JSeparator jSeparator3;
     // End of variables declaration//GEN-END:variables
 }
