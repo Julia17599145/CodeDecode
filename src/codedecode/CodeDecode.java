@@ -55,6 +55,7 @@ public class CodeDecode extends javax.swing.JFrame {
         Map<String, Integer> dictionary = new HashMap<String, Integer>();
         int code = 0;
         if (jCheckBox1.isSelected()) {
+            System.err.println("Nf,k");
             File file = new File("../CodeDecode/bankcode.txt");
             StringBuilder strBuffer = new StringBuilder();
             if (file.exists() && file.length() != 0) {
@@ -83,26 +84,22 @@ public class CodeDecode extends javax.swing.JFrame {
             }
         } else {
             for (int i = 32; i < 127; i++) {
-                dictionary.put("" + (char) i, code);
-                code++;
+                dictionary.put("" + (char) i, code++);
             }
             for (int i = 1040; i < 1104; i++) {
-                dictionary.put("" + (char) i, code);
-                code++;
+                dictionary.put("" + (char) i, code++);
             }
             //добавление символа №
-            dictionary.put("" + (char) 8470, code);
-            code++;
+            dictionary.put("" + (char) 8470, code++);
             //добавление символа ё
-            dictionary.put("" + (char) 1105, code);
-            code++;
+            dictionary.put("" + (char) 1105, code++);
             //добавление символа Ё
-            dictionary.put("" + (char) 1025, code);
-            code++;
-            dictionary.put("" + (char) 171, code);
-            code++;
-            dictionary.put("" + (char) 187, code);
-            code++;
+            dictionary.put("" + (char) 1025, code++);
+            //символы открывающихся / закрывающихся ковычек
+            dictionary.put("" + (char) 171, code++);
+            dictionary.put("" + (char) 187, code++);
+            //перенос
+            dictionary.put("" + (char) 13, code++);
         }
         int max = 0;
         for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
@@ -110,29 +107,33 @@ public class CodeDecode extends javax.swing.JFrame {
                 max = entry.getValue();
             }
         }
+        if(dictionary.containsKey("доку")){
+            System.err.println("zxc");
+        }
         code = max;
-        System.err.println(code);
-        System.err.println(dictionary);
         String w = "";
         List<Integer> result = new ArrayList<Integer>();
         for (char c : readBuffer.toString().toCharArray()) {
             String wc = w + c;
+            System.out.println("wc " + wc);
             if (dictionary.containsKey(wc)) {
                 w = wc;
             } else {
                 result.add(dictionary.get(w));
+                System.out.println("result " + w);
                 // Add wc to the dictionary.
                 if (code != 4096) {
                     dictionary.put(wc, code++);
+                    System.out.println("dictionary " + wc);
                 }
                 w = "" + c;
             }
         }
         System.err.println(dictionary);
         // Output the code for w.
-        //if (!w.equals("")) {
+        if (!w.equals("")) {
             result.add(dictionary.get(w));
-       // }
+        }
         return result;
     }
 
@@ -147,6 +148,7 @@ public class CodeDecode extends javax.swing.JFrame {
         Map<Integer, String> dictionary = new HashMap<Integer, String>();
 
         if (jCheckBox1.isSelected()) {
+            
             File file = new File("../CodeDecode/bankcode.txt");
             StringBuilder strBuffer = new StringBuilder();
             if (file.exists() && file.length() != 0) {
@@ -198,6 +200,8 @@ public class CodeDecode extends javax.swing.JFrame {
             //добавление символа Ё
             dictionary.put(code, "" + (char) 187);
             code++;
+            dictionary.put(code, "" + (char) 13);
+            code++;
         }
         int max = 0;
         for (Map.Entry<Integer, String> entry : dictionary.entrySet()) {
@@ -229,9 +233,9 @@ public class CodeDecode extends javax.swing.JFrame {
 
             result.append(entry);
             // Add w+entry[0] to the dictionary.
-            //if (code != 4096) {
+            if (code != 4096) {
                 dictionary.put(code++, w + entry.charAt(0));
-            //}
+            }
             w = entry;
         }
 
@@ -276,7 +280,7 @@ public class CodeDecode extends javax.swing.JFrame {
             }
 
             //PrintWriter обеспечит возможности записи в файл
-            PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile());
+            PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile(), "Cp1251");
 
             try {
                 out.print(compressed);
@@ -322,7 +326,7 @@ public class CodeDecode extends javax.swing.JFrame {
     }
 
     //записать закодированную последовательость
-    public DataOutputStream writeСodeFile(String fileName, List<Integer> compressed) {
+    public DataOutputStream writeСodeFile(String fileName, List<Integer> compressed) { //DataOutputStream
         DataOutputStream data_out = null;
         try {
             // Create an output stream to the file.
@@ -340,6 +344,32 @@ public class CodeDecode extends javax.swing.JFrame {
             System.out.println("IO exception = " + e);
         }
         return data_out;
+        
+        /*File writeFile = new File(fileName);
+        try {
+            //проверяем, что если файл не существует то создаем его
+            if (!writeFile.exists()) {
+                writeFile.createNewFile();
+            }
+
+            //PrintWriter обеспечит возможности записи в файл
+            PrintWriter out = new PrintWriter(writeFile.getAbsoluteFile(), "Cp1251");
+
+            try {
+                out.print(compressed);
+                //Записываем текст у файл
+                for (int i : compressed) {
+                out.print(compressed + " ");
+            }
+            } finally {
+                //После чего мы должны закрыть файл
+                //Иначе файл не запишется
+                out.close();
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        return writeFile;*/
     }
 
     public String getFileName(String fullName) {
