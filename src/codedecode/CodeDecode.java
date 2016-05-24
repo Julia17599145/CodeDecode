@@ -50,10 +50,10 @@ public class CodeDecode extends javax.swing.JFrame {
 
     File readFile = new File("");
 
-    public List<Integer> compress(StringBuilder readBuffer) {
+    public List<Short> compress(StringBuilder readBuffer) {
         // заполнение словаря
-        Map<String, Integer> dictionary = new HashMap<String, Integer>();
-        int code = 0;
+        Map<String, Short> dictionary = new HashMap<String, Short>();
+        short code = 0;
         if (jCheckBox1.isSelected()) {
             System.err.println("Nf,k");
             File file = new File("../CodeDecode/bankcode.txt");
@@ -73,7 +73,7 @@ public class CodeDecode extends javax.swing.JFrame {
                         String[] splitFile = strBuffer.toString().trim().split("(~\\|)");
                         
                         for (int i = 0; i < splitFile.length; i += 2) {
-                            dictionary.put(splitFile[i], Integer.parseInt(splitFile[i + 1]));
+                            dictionary.put(splitFile[i], Short.parseShort(splitFile[i + 1]));
                         }
                     } finally {
                         in.close();
@@ -101,30 +101,27 @@ public class CodeDecode extends javax.swing.JFrame {
             //перенос
             dictionary.put("" + (char) 13, code++);
         }
-        int max = 0;
-        for (Map.Entry<String, Integer> entry : dictionary.entrySet()) {
+        short max = 0;
+        for (Map.Entry<String, Short> entry : dictionary.entrySet()) {
             if (entry.getValue() > max) {
                 max = entry.getValue();
             }
         }
-        if(dictionary.containsKey("доку")){
-            System.err.println("zxc");
-        }
         code = max;
         String w = "";
-        List<Integer> result = new ArrayList<Integer>();
+        List<Short> result = new ArrayList<Short>();
         for (char c : readBuffer.toString().toCharArray()) {
             String wc = w + c;
-            System.out.println("wc " + wc);
+            //System.out.println("wc " + wc);
             if (dictionary.containsKey(wc)) {
                 w = wc;
             } else {
                 result.add(dictionary.get(w));
-                System.out.println("result " + w);
+                //System.out.println("result " + w);
                 // Add wc to the dictionary.
                 if (code != 4096) {
                     dictionary.put(wc, code++);
-                    System.out.println("dictionary " + wc);
+                    //System.out.println("dictionary " + wc);
                 }
                 w = "" + c;
             }
@@ -142,10 +139,10 @@ public class CodeDecode extends javax.swing.JFrame {
      *
      * @param compressed
      */
-    public String decompress(List<Integer> compressed) {
+    public String decompress(List<Short> compressed) {
         // Build the dictionary.
-        int code = 0;
-        Map<Integer, String> dictionary = new HashMap<Integer, String>();
+        Short code = 0;
+        Map<Short, String> dictionary = new HashMap<Short, String>();
 
         if (jCheckBox1.isSelected()) {
             
@@ -166,7 +163,7 @@ public class CodeDecode extends javax.swing.JFrame {
                         String[] splitFile = strBuffer.toString().trim().split("(~\\|)");
                         
                         for (int i = 0; i < splitFile.length; i += 2) {
-                            dictionary.put(Integer.parseInt(splitFile[i + 1]), splitFile[i]);
+                            dictionary.put(Short.parseShort(splitFile[i + 1]), splitFile[i]);
                         }
                     } finally {
                         in.close();
@@ -203,8 +200,8 @@ public class CodeDecode extends javax.swing.JFrame {
             dictionary.put(code, "" + (char) 13);
             code++;
         }
-        int max = 0;
-        for (Map.Entry<Integer, String> entry : dictionary.entrySet()) {
+        Short max = 0;
+        for (Map.Entry<Short, String> entry : dictionary.entrySet()) {
             if (entry.getKey()> max) {
                 max = entry.getKey();
             }
@@ -214,7 +211,7 @@ public class CodeDecode extends javax.swing.JFrame {
         //извлечение первого символа
         int s = compressed.remove(0);
         String w = "";
-        for (Map.Entry<Integer, String> entry : dictionary.entrySet()) {
+        for (Map.Entry<Short, String> entry : dictionary.entrySet()) {
             if (entry.getKey() == s) {
                 w = entry.getValue();
             }
@@ -300,8 +297,8 @@ public class CodeDecode extends javax.swing.JFrame {
     }
 
     //считать закодированную последовательность
-    public List<Integer> readCodeFile(String fileName) {
-        List<Integer> list = new ArrayList<Integer>();
+    public List<Short> readCodeFile(String fileName) {
+        List<Short> list = new ArrayList<Short>();
         try {
             // Wrap the FileInputStream with a DataInputStream
             FileInputStream file_input = new FileInputStream(fileName);
@@ -310,7 +307,7 @@ public class CodeDecode extends javax.swing.JFrame {
             while (true) {
 
                 try {
-                    list.add(data_in.readInt());
+                    list.add(data_in.readShort());
                 } catch (EOFException eof) {
                     System.out.println("End of File");
                     break;
@@ -326,7 +323,7 @@ public class CodeDecode extends javax.swing.JFrame {
     }
 
     //записать закодированную последовательость
-    public DataOutputStream writeСodeFile(String fileName, List<Integer> compressed) { //DataOutputStream
+    public DataOutputStream writeСodeFile(String fileName, List<Short> compressed) { //DataOutputStream
         DataOutputStream data_out = null;
         try {
             // Create an output stream to the file.
@@ -335,8 +332,8 @@ public class CodeDecode extends javax.swing.JFrame {
             data_out = new DataOutputStream(file_output);
 
             // Write the data to the file in an integer/double pair
-            for (int i : compressed) {
-                data_out.writeInt(i);
+            for (Short i : compressed) {
+                data_out.writeShort(i);
             }
             // Close file when finished with it..
             file_output.close();
@@ -506,7 +503,7 @@ public class CodeDecode extends javax.swing.JFrame {
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
-    List<Integer> compressed;
+    List<Short> compressed;
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
         readFile();
@@ -521,6 +518,7 @@ public class CodeDecode extends javax.swing.JFrame {
             if (jRadioButton1.isSelected()) {
                 compressed = compress(readBuffer);
                 System.out.println(compressed);
+                System.out.println(compressed.size());
                 String fileName = readFile.getParent() + "\\code_" + getFileName(readFile.getName()) + ".dat";
                 DataOutputStream outputFile = writeСodeFile(fileName, compressed);
 
@@ -528,9 +526,10 @@ public class CodeDecode extends javax.swing.JFrame {
                 jLabel3.setText("Размер файла до комперессии " + readFile.length() + " байт. После компрессии " + outputFile.size() + " байт.");
                 JOptionPane.showMessageDialog(jButton1, "Данные кодирования сохранены в файл code_" + getFileName(readFile.getName()) + ".dat");
             } else if (jRadioButton2.isSelected()) {
-                List<Integer> decodeSequence = readCodeFile(readFile.getAbsolutePath());
+                List<Short> decodeSequence = readCodeFile(readFile.getAbsolutePath());
                 String decompressed = decompress(decodeSequence);
                 System.out.println(decompressed);
+                
                 String fileName = readFile.getParent() + "\\decode_" + getFileName(readFile.getName()) + ".txt";
                 File outputFile = writeFile(fileName, decompressed);
                 jLabel3.setVisible(true);
