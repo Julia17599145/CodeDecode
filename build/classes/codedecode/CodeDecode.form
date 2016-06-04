@@ -58,8 +58,9 @@
                       <Group type="103" groupAlignment="0" attributes="0">
                           <Component id="jCheckBox1" min="-2" max="-2" attributes="0"/>
                           <Component id="jComboBox1" alignment="0" min="-2" pref="112" max="-2" attributes="0"/>
+                          <Component id="jCheckBox3" min="-2" max="-2" attributes="0"/>
                       </Group>
-                      <EmptySpace min="-2" pref="71" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="0" max="-2" attributes="0"/>
                   </Group>
               </Group>
               <EmptySpace max="-2" attributes="0"/>
@@ -91,6 +92,8 @@
                       <Component id="jCheckBox1" min="-2" max="-2" attributes="0"/>
                       <EmptySpace type="unrelated" max="-2" attributes="0"/>
                       <Component id="jComboBox1" min="-2" max="-2" attributes="0"/>
+                      <EmptySpace min="-2" pref="14" max="-2" attributes="0"/>
+                      <Component id="jCheckBox3" min="-2" max="-2" attributes="0"/>
                   </Group>
                   <Component id="jSeparator1" min="-2" pref="108" max="-2" attributes="0"/>
               </Group>
@@ -178,6 +181,12 @@
     <Component class="javax.swing.JSeparator" name="jSeparator2">
     </Component>
     <Component class="javax.swing.JSeparator" name="jSeparator3">
+    </Component>
+    <Component class="javax.swing.JCheckBox" name="jCheckBox3">
+      <Properties>
+        <Property name="selected" type="boolean" value="true"/>
+        <Property name="text" type="java.lang.String" value="&#x418;&#x441;&#x43f;&#x43e;&#x43b;&#x44c;&#x437;&#x43e;&#x432;&#x430;&#x442;&#x44c; &#x43e;&#x43f;&#x435;&#x440;&#x435;&#x436;&#x430;&#x44e;&#x449;&#x438;&#x439; &#x43f;&#x440;&#x43e;&#x441;&#x43c;&#x43e;&#x442;&#x440;"/>
+      </Properties>
     </Component>
   </SubComponents>
 </Form>

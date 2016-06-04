@@ -122,64 +122,69 @@ public class CodeDecode extends javax.swing.JFrame {
         }
         code = max;
         String previousLine = "";
+        //String currentLine = "";
         List<Short> result = new ArrayList<Short>();
-        /*for (char c : readBuffer.toString().toCharArray()) {
-         String wc = w + c;
-         //System.out.println("wc " + wc);
-         if (dictionary.containsKey(wc)) {
-         w = wc;
-         } else {
-         result.add(dictionary.get(w));
-         //System.out.println("result " + w);
-         // Add wc to the dictionary.
-         if (code != 4096) {
-         dictionary.put(wc, code++);
-         //System.out.println("dictionary " + wc);
-         }
-         w = "" + c;
-         }
-         }*/
-
-        char[] sequence = readBuffer.toString().toCharArray();
-        for (int i = 0; i < sequence.length; i++) {
-            String currentLine = previousLine + sequence[i];
-            if (dictionary.containsKey(currentLine)) {
-                previousLine = currentLine;
-            } else {
-                int count = 30;
-                int j = 0;
-                String match = previousLine; 
-                int numberMatch = 0;
-                while (count > 0) {
-                    if (i + j < sequence.length - 1) {
-                        currentLine = previousLine + sequence[i + j]; 
-                        if (dictionary.containsKey(currentLine)) {
-                            previousLine = currentLine;
-                            match = previousLine;
-                            j++;
-                            numberMatch = j;
+        if (jCheckBox3.isSelected()) {
+            char[] sequence = readBuffer.toString().toCharArray();
+            for (int i = 0; i < sequence.length; i++) {
+                String currentLine = previousLine + sequence[i];
+                if (dictionary.containsKey(currentLine)) {
+                    previousLine = currentLine;
+                } else {
+                    int count = 30;
+                    int j = 0;
+                    String match = previousLine;
+                    int numberMatch = 0;
+                    while (count > 0) {
+                        if (i + j < sequence.length - 1) {
+                            currentLine = previousLine + sequence[i + j];
+                            if (dictionary.containsKey(currentLine)) {
+                                previousLine = currentLine;
+                                match = previousLine;
+                                j++;
+                                numberMatch = j;
+                            } else {
+                                previousLine = currentLine;
+                                j++;
+                                count--;
+                            }
                         } else {
-                            previousLine = currentLine;
-                            j++;
-                            count--;
+                            break;
                         }
-                    } else {
-                        break;
                     }
+                    result.add(dictionary.get(match));
+                    if (code != 4096) {
+                        String newStr = match + sequence[i + numberMatch];
+                        dictionary.put(newStr, code++);
+                        
+                    }
+                    i += numberMatch;
+                    previousLine = "" + sequence[i];
                 }
-                result.add(dictionary.get(match));
-                if (code != 4096) {
-                    String newStr = match + sequence[i + numberMatch];
-                    dictionary.put(newStr, code++);
+            }
+            if (!previousLine.equals("")) {
+                result.add(dictionary.get(previousLine));
+            }
+        } else {
+            for (char simbol : readBuffer.toString().toCharArray()) {
+                String currentLine = previousLine + simbol;
+                if (dictionary.containsKey(currentLine)) {
+                    previousLine = currentLine;
+                } else {
+                    result.add(dictionary.get(previousLine));
+                    // Add wc to the dictionary.
+                    System.out.println("here");
+                    if (code != 4096) {
+                        dictionary.put(currentLine, code++);
+                        System.out.println(code);
+                    }
+                    previousLine = "" + simbol;
                 }
-                i += numberMatch; 
-                previousLine = "" + sequence[i];
+            }
+            if (!previousLine.equals("")) {
+                result.add(dictionary.get(previousLine));
             }
         }
-        if (!previousLine.equals("")) {
-            result.add(dictionary.get(previousLine));
-        }
-        
         return result;
     }
 
@@ -203,7 +208,7 @@ public class CodeDecode extends javax.swing.JFrame {
         //добавление символа Ё
         dictionary.put(code++, "" + (char) 187);
         //перенос
-        dictionary.put(code++, "" + (char) 182); 
+        dictionary.put(code++, "" + (char) 182);
         return dictionary;
     }
 
@@ -219,7 +224,7 @@ public class CodeDecode extends javax.swing.JFrame {
 
         if (jCheckBox1.isSelected()) {
             String[] splitFile = readTable();
-            
+
             for (int i = 0; i < splitFile.length; i += 2) {
                 dictionary.put(Short.parseShort(splitFile[i + 1]), splitFile[i]);
             }
@@ -331,7 +336,7 @@ public class CodeDecode extends javax.swing.JFrame {
             FileOutputStream file_output = new FileOutputStream(fileName);
             data_out = new DataOutputStream(file_output);
 
-            for(int i = 0; i < compressed.size(); i++){
+            for (int i = 0; i < compressed.size(); i++) {
                 //System.out.println(i + " " + compressed.get(i));
                 data_out.writeShort(compressed.get(i));
             }
@@ -375,6 +380,7 @@ public class CodeDecode extends javax.swing.JFrame {
         jSeparator1 = new javax.swing.JSeparator();
         jSeparator2 = new javax.swing.JSeparator();
         jSeparator3 = new javax.swing.JSeparator();
+        jCheckBox3 = new javax.swing.JCheckBox();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
 
@@ -412,6 +418,9 @@ public class CodeDecode extends javax.swing.JFrame {
 
         jSeparator1.setOrientation(javax.swing.SwingConstants.VERTICAL);
 
+        jCheckBox3.setSelected(true);
+        jCheckBox3.setText("Использовать опережающий просмотр");
+
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
@@ -440,8 +449,9 @@ public class CodeDecode extends javax.swing.JFrame {
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                         .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jCheckBox1)
-                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGap(71, 71, 71)))
+                            .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, 112, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addComponent(jCheckBox3))
+                        .addGap(0, 0, 0)))
                 .addContainerGap())
         );
         layout.setVerticalGroup(
@@ -466,7 +476,9 @@ public class CodeDecode extends javax.swing.JFrame {
                     .addGroup(layout.createSequentialGroup()
                         .addComponent(jCheckBox1)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(jComboBox1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addGap(14, 14, 14)
+                        .addComponent(jCheckBox3))
                     .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 108, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(jSeparator3, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -561,6 +573,7 @@ public class CodeDecode extends javax.swing.JFrame {
     private javax.swing.JButton jButton1;
     private javax.swing.JButton jButton2;
     private javax.swing.JCheckBox jCheckBox1;
+    private javax.swing.JCheckBox jCheckBox3;
     private javax.swing.JComboBox jComboBox1;
     private javax.swing.JFileChooser jFileChooser1;
     private javax.swing.JLabel jLabel1;
